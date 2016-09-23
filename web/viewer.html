@@ -31,7 +31,7 @@ See https://github.com/adobe-type-tools/cmap-resources
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <!--#endif-->
     <title>PDF.js viewer</title>
-
+    
 <!--#if FIREFOX || MOZCENTRAL-->
 <!--#include viewer-snippet-firefox-extension.html-->
 <!--#endif-->
@@ -71,9 +71,57 @@ See https://github.com/adobe-type-tools/cmap-resources
 <!--#include viewer-snippet-minified.html-->
 <!--#endif-->
 
+
+    <style>
+     .openFile, .print, .download,
+     #fileNameField, #fileSizeField,
+     span[data-l10n-id="document_properties_file_name"],
+     span[data-l10n-id="document_properties_file_size"] {
+       display: none !important;
+     }
+     .warnNoPrint { display: none; }
+
+     body {
+       background-color: transparent;
+       background-image: url("images/confidentiel-gold.svg");
+       background-size: 125px 125px;
+       background-repeat: repeat;
+       opacity: 0.9;
+     }
+     
+     html {
+     -webkit-touch-callout: none;
+     -webkit-user-select: none;
+     -khtml-user-select: none;
+     -moz-user-select: none;
+     -ms-user-select: none;
+     user-select: none;
+     }
+    </style>
+
+    <style media="print">
+     #outerContainer, #printContainer { display: none !important; }
+     .warnNoPrint { display: block; margin: 30%; font-size: 16px; }
+    </style>
+
+<script>
+ document.addEventListener('DOMContentLoaded', function () {
+   window.addEventListener("message", function (event) {
+     var data = event.data || '';
+     var m = data.match(/PDF.js:openFile:(.*)/);
+     if (m) PDFViewerApplication.open(m[1]);
+   }, true);
+
+   if (window.opener) {
+     (window.opener.postMessage ? window.opener : window.opener.document).postMessage('PDF.js:ready', '*');
+   }
+ });
+</script>
+
   </head>
 
   <body tabindex="1" class="loadingInProgress">
+    <div class="warnNoPrint">Vous ne devez pas imprimer ce document confidentiel</div>
     <div id="outerContainer">
 
       <div id="sidebarContainer">
