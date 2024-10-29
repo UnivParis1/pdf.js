@@ -47,7 +47,7 @@ See https://github.com/adobe-type-tools/cmap-resources
 
     
     <style>
-     .openFile, .print, .download,
+     .openFile, .print, .download, #presentationMode,
      #fileNameField, #fileSizeField,
      span[data-l10n-id="document_properties_file_name"],
      span[data-l10n-id="document_properties_file_size"] {
@@ -57,12 +57,43 @@ See https://github.com/adobe-type-tools/cmap-resources
 
      body {
        background-color: transparent;
-       background-image: url("images/confidentiel-gold.svg");
-       background-size: 125px 125px;
-       background-repeat: repeat;
-       opacity: 0.9;
      }
-     
+     .page {
+       opacity: 0.8;
+     }
+     .welcomeModalWindowP1PS {
+         position: fixed;
+         top: 0; bottom: 0; left: 0; right: 0;
+         z-index: 10000;
+         background: #ffffffe0;
+
+         display: flex;
+         justify-content: center;
+         align-items: center;
+    }
+    .welcomeModalWindowP1PS > div {
+        height: 80%;
+        width: 100%;
+        max-width: 60rem;
+        max-height: 60rem;
+
+        box-sizing: border-box;
+        border: 10px solid #e35210;
+        padding: 3rem;
+        background: white;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .welcomeModalWindowP1PS img {
+        width: 30rem;
+    }
+    .welcomeModalWindowP1PS ul {
+        padding: 0.5rem 0 0.5rem 1rem;
+    }
+
      html {
      -webkit-touch-callout: none;
      -webkit-user-select: none;
@@ -79,15 +110,43 @@ See https://github.com/adobe-type-tools/cmap-resources
     </style>
 
 <script>
+
+    function fillCanvasText(ctx, text) {
+        for (var fontSize = 72; fontSize > 0; fontSize -= 2) {
+            ctx.font = fontSize + 'px Sans-serif';
+            var textDimensions = ctx.measureText(text);        
+            if (textDimensions.width < ctx.canvas.width) {
+                ctx.rotate(Math.PI / 10);
+                ctx.fillText(text, 10, 0);
+                return
+            }
+        }
+    }
+    function textToDataURL(text) {
+        var canvas = document.createElement("canvas");
+        canvas.setAttribute('width', 600);
+        canvas.setAttribute('height', 300);
+        var ctx = canvas.getContext('2d');
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = '#be8719';
+        fillCanvasText(ctx, text)
+        return canvas.toDataURL("image/png")
+    }
+
  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById
    window.addEventListener("message", function (event) {
      var data = event.data || '';
-     var m = data.match(/PDF.js:openFile:(.*)/);
-     if (m) PDFViewerApplication.open(m[1]);
+     var m = data.match(/PDF.js:openFile:(.*?):(.*)/);
+     if (m) {
+        var text = 'Consultation accordée à ' + m[1]
+        document.getElementById("mainContainer").style.backgroundImage = "url(" + textToDataURL(text) + ")"
+        PDFViewerApplication.open(m[2]);
+     }
    }, true);
 
-   if (window.opener) {
-     (window.opener.postMessage ? window.opener : window.opener.document).postMessage('PDF.js:ready', '*');
+   if (window.parent) {
+     (window.parent.postMessage ? window.parent : window.parent.document).postMessage('PDF.js:ready', '*');
    }
  });
 </script>
@@ -95,7 +154,27 @@ See https://github.com/adobe-type-tools/cmap-resources
   </head>
 
   <body tabindex="1" class="loadingInProgress">
-    <div class="warnNoPrint">Vous ne devez pas imprimer ce document confidentiel</div>
+    <div class="warnNoPrint">Cette thèse est à accès restreint. Vous ne pouvez pas l'imprimer.</div>
+    <div class="welcomeModalWindowP1PS" onclick="this.style = 'display: none'">
+        <div>
+            <div style="text-align: center;">
+                <img src="logo-p1ps.svg">
+                <p style="height: 3rem"></p>
+                <h3>Collection des thèses<br>de l'Université Paris 1 Panthéon-Sorbonne</h3>
+                <p style="height: 2rem"></p>
+            </div>
+
+            <div>
+                Document soumis aux droits moraux et patrimoniaux de son auteur définis aux articles L121-1 et suivants du Code de la Propriété Intellectuelle. 
+                <ul>
+                    <li>Ce document ne peut pas être rediffusé sans l'accord de son auteur.</li>
+                    <li>Le contenu de ce document n’est pas réutilisable contre la volonté de son auteur.</li>
+                    <li>Conformément aux principes de l'intégrité scientifique, toute citation de ce document doit se limiter à un court extrait. La source doit être mentionnée selon les règles académiques.</li>
+                </ul>
+                Ce document est communiqué à l’usage exclusif de l’utilisateur désigné dans le filigrane. Il n’est pas téléchargeable.  
+            </div>
+        </div>
+    </div>
     <div id="outerContainer">
 
       <div id="sidebarContainer">
